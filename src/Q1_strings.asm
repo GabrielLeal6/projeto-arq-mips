@@ -3,6 +3,7 @@
 # Arquivo referente a criação das funções pedidas na questão 1 da seção de de exercícios do projeto
 # Define as funções strcpy, memcpy, strcmp, strncmp e strcat
 
+j main
 
 # Função que cópia uma string para outro endereço
 strcpy: # entrada da função strcpy
@@ -138,3 +139,54 @@ loop_strcat_concat: # label do loop de concatenação
 	
 fim_strcat: # ponto de saída da função strcat
 	jr $ra # retorna para o código que invocou a função strcmp
+
+.data	
+	source_string:  .asciiz "Santa Cruz"
+	destiny_string: .asciiz "Sport"
+	newline:	.asciiz "\n"
+	string_livre:   .space 100
+
+.text
+.global main
+
+main:
+	# como printar:
+	# li $v0, 4
+	# la $a0, source_string
+	# syscall
+	# li $v0, 10 
+	
+	# teste função strcpy
+	la $a0, string_livre
+	la $a1, source_string
+
+	jal strcpy
+	move $s0, $v0
+	li $v0, 4
+	la $a0, 0($s0)
+	syscall
+	li $v0, 10
+
+	# printa uma line break
+	li $v0, 4
+	la $a0, newline
+	syscall
+	li $v0, 10 
+
+	# teste função memcpy
+	la $a0, string_livre
+	la $a1, destiny_string
+	li $a2, 5 
+	
+	jal memcpy
+	move $s1, $v0
+	li $v0, 4
+	la $a0, 0($s1)
+	syscall
+	li $v0, 10
+
+	
+	
+	
+	
+	
