@@ -140,51 +140,91 @@ loop_strcat_concat: # label do loop de concatenação
 fim_strcat: # ponto de saída da função strcat
 	jr $ra # retorna para o código que invocou a função strcmp
 
-.data	
-	source_string:  .asciiz "Santa Cruz"
-	destiny_string: .asciiz "Sport"
-	newline:	.asciiz "\n"
-	string_livre:   .space 100
+print_linebreak:
+    li $v0, 4 # carrega o código 4 (print string) em $v0
+    la $a0, newline # carrega o endereço da string newline em $a0
+    syscall # executa a chamada de sistema (imprime)
+    jr $ra # retorna para o código que invocou a função
 
+print_string:
+    li $v0, 4 # carrega o código 4 (print string) em $v0
+    # (syscall assume que $a0 já tem o endereço da string)
+    syscall # executa a chamada de sistema (imprime string em $a0)
+    jr $ra # retorna para o código que invocou a função
+
+print_integer:
+    li $v0, 1 # carrega o código 1 (print integer) em $v0
+    # (syscall assume que $a0 já tem o inteiro)
+    syscall # executa a chamada de sistema (imprime inteiro em $a0)
+    jr $ra # retorna para o código que invocou a função
+
+# seção de dados criados para os testes abaixo
+.data    
+    source_string:    .asciiz "Santa Cruz"    # define a string de origem 1
+    destination_string: .asciiz "Sport"       # define a string de origem 2
+    newline:          .asciiz "\n"            # define o caractere de pular linha
+    string_livre:     .space 100            # reserva 100 bytes de espaço para o destino 1
+    string_livre2:    .space 100            # reserva 100 bytes de espaço para o destino 2
+
+
+# seção de testes/execução do programa
 .text
-.global main
+main: # ponto de entrada principal do programa
+    #teste função strcpy
+    la $a0, string_livre # carrega o endereço do destino (string_livre) em $a0
+    la $a1, source_string # carrega o endereço da origem (source_string) em $a1
+    jal strcpy # invoca a função strcpy
+    
+    move $a0, $v0 # move o resultado (ponteiro do destino) para $a0 para impressão
+    jal print_string # invoca a função de imprimir string
+    jal print_linebreak # invoca a função de pular linha
 
-main:
-	# como printar:
-	# li $v0, 4
-	# la $a0, source_string
-	# syscall
-	# li $v0, 10 
+    # teste função memcpy
+    la $a0, string_livre2 # carrega o endereço do destino (string_livre2) em $a0
+    la $a1, destination_string # carrega o endereço da origem (destination_string) em $a1
+    li $a2, 5 # carrega o número 5 (num) em $a2
+    jal memcpy # invoca a função memcpy
+    
+    move $a0, $v0 # move o resultado (ponteiro do destino) para $a0 para impressão
+    jal print_string # invoca a função de imprimir string
+    jal print_linebreak # invoca a função de pular linha
+    
+    # teste da função strcmp
+    la $a1, destination_string # carrega a origem 2 (str2) em $a1
+    la $a0, source_string # carrega a origem 1 (str1) em $a0
+    
+    jal strcmp # invoca a função strcmp
+        
+    move $a0, $v0 # move o resultado (inteiro -1, 0 ou 1) para $a0
+    jal print_integer # invoca a função de imprimir inteiro
+    jal print_linebreak # invoca a função de pular linha
+    
+    # teste da função strncmp
+    la $a1, destination_string # carrega a origem 2 (str2) em $a1
+    la $a0, source_string # carrega a origem 1 (str1) em $a0
+    li $a3, 5 # carrega o número 5 (num) em $a3
+    
+    jal strncmp # invoca a função strncmp
+    
+    move $a0, $v0 # move o resultado (inteiro) para $a0
+    jal print_integer # invoca a função de imprimir inteiro
+    jal print_linebreak # invoca a função de pular linha
+    
+    # teste da função strcat
+    la $a1, destination_string # carrega a origem (source) em $a1
+    la $a0, source_string # carrega o destino (destination) em $a0
+    
+    jal strcat # invoca a função strcat
+    
+    move $a0, $v0 # move o resultado (ponteiro do destino) para $a0
+    jal print_string # invoca a função de imprimir string
+
+    # Fim do Programa
+    li $v0, 10 # carrega o código 10 (exit) em $v0
+    syscall # executa a chamada de sistema (termina o programa)
 	
-	# teste função strcpy
-	la $a0, string_livre
-	la $a1, source_string
-
-	jal strcpy
-	move $s0, $v0
-	li $v0, 4
-	la $a0, 0($s0)
-	syscall
-	li $v0, 10
-
-	# printa uma line break
-	li $v0, 4
-	la $a0, newline
-	syscall
-	li $v0, 10 
-
-	# teste função memcpy
-	la $a0, string_livre
-	la $a1, destiny_string
-	li $a2, 5 
 	
-	jal memcpy
-	move $s1, $v0
-	li $v0, 4
-	la $a0, 0($s1)
-	syscall
-	li $v0, 10
-
+	
 	
 	
 	
