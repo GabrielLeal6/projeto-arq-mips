@@ -6,6 +6,7 @@
 j main
 
 # Função que cópia uma string para outro endereço
+.globl strcpy
 strcpy: # entrada da função strcpy
 	move $v0, $a0 # retorna o endereço de destino para o registrador $v0
 
@@ -24,6 +25,7 @@ fim_strcpy: # ponto de saída da função strcpy
 
 
 # função que cópia uma número de bytes (num) de um bloco para outro na memória
+.globl memcpy
 memcpy: # entrada da função memcpy
 	move $v0, $a0 # retorna o endereço de destino para o registrador $v0
 	add $t1, $zero, $a2 # cria em $t1 um contador com o valor de num ($a2)
@@ -45,6 +47,7 @@ fim_memcpy: # ponto de saída da função memcpy
 
 
 # função que comapara duas strings com diferentes retornos dependendo do resultado da comparação, podendo ser negativo, positivo ou zero
+.globl strcmp
 strcmp: # ponto de entrada da função strcmp
 
 # loop principal da comparação	
@@ -75,6 +78,7 @@ strcmp_inteiro_positivo: # resultado caso o primeiro caractere diferente seja ma
 	
 
 # função que compara duas strings até no máximo um número (num) de bytes
+.globl strncmp
 strncmp: # ponto de entrada da função strncmp
 	add $t0, $zero, $a3 # cria o contador de num ($a3) em $t0
 
@@ -110,6 +114,7 @@ strncmp_inteiro_positivo:
 
 
 # função que concatena duas strings
+.globl strcat
 strcat: # ponto de entrada da função strcat
 	move $v0, $a0 # retorna o endereço de destino para o registrador $v0
 	add $t0, $a0, $zero # cria um iterador para chegar até a parada da string destino
