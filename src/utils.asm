@@ -64,3 +64,25 @@ encontrarTerminar:
 	lw $s0, 4($sp)
 	addi $sp, $sp, 8
 	jr $ra # Retorno
+
+.globl stringParaInteiro
+stringParaInteiro:
+	li $v0, 0           # $v0 = resultado = 0
+   	li $t1, 10          # $t1 = 10 (para multiplicação)
+
+conversorLoop:
+	lb $t0, 0($a0)
+	
+	blt $t0, '0', conversorTerminar
+	bgt $t0, '9', conversorTerminar
+	
+	subi $t0, $t0, 48
+	
+	mul $v0, $v0, $t1
+	add $v0, $v0, $t0
+	
+	addi $a0, $a0, 1
+	j conversorLoop
+
+conversorTerminar:
+	jr $ra
