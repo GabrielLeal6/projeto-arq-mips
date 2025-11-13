@@ -4,6 +4,8 @@
 
 .data
 	# atributos do cliente:
+	
+	
 	.eqv SIZE_NOME 64
 	.eqv SIZE_CPF 12
 	.eqv SIZE_CONTA 9
@@ -21,5 +23,7 @@
 	
 	.eqv SIZE_CLIENTE SIZE_FIXOS + SIZE_TRANS_TOTAL #  105 + 3200 = 3305
 	
+	.globl banco_clientes
 	banco_clientes:    .space 165250 # 50 * SIZE_CLIENTE
+	.globl contador_clientes
 	contador_clientes: .word 00 # Número atual de clientes cadastrados

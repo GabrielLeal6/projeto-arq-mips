@@ -5,6 +5,7 @@
 .data
 	banner: .asciiz "Banco Tempero-shell>> " # Banner do banco estilo terminal (Requisito 12)
 	
+	.globl input_buffer
 	input_buffer: .space 128 # reserva 128 bytes para os inputs
 
 	# lista de comandos disponíveis para o usuário (na shell)
@@ -29,6 +30,8 @@
 	
 	
 .text
+
+
 .globl main
 main: # ponto de entrada principal do projeto
 	
@@ -158,53 +161,243 @@ main_loop: # loop principal da função main (funciona como uma shell)
 
 
 
-executar_conta_cadastrar:
-	la $t0, input_buffer
-	li $t1, 45 # carrega o "-" para $t1 (45 é o "-" em ASCII)
+executar_conta_cadastrar: # ponto de entrada do comando conta_cadastrar
+	la $a0, input_buffer # carrega o endereço da string do input_buffer para o registrador $t0
 	
-
+	# fazendo o parsing dos argumentos do comando do usuário:
+	li $t1, 45 # carrega o "-" para $a1 (45 é o "-" em ASCII)
+	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	move $s0, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
 	
-	j main_loop
-
-executar_conta_format:
-	j main_loop
-
-executar_debito_extrato:
-	j main_loop
-
-executar_credito_extrato:
-	j main_loop
-
-executar_transferir_debito:
-	j main_loop
-
-executar_transferir_credito:
-	j main_loop
+	move $a0, $v0 # carrega o endereço da string retornado da função anterior para buscar pelo proximo "-"
+	li $a1, 45 # carrega o "-" para $t1 (45 é o "-" em ASCII)
+	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	move $s1, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
 	
-executar_pagar_fatura:
-	j main_loop
-
-executar_sacar:
-	j main_loop
-
-executar_depositar:
-	j main_loop
-
-executar_alterar_limite:
-	j main_loop
-
-executar_conta_fechar:
-	j main_loop
-
-executar_data_hora:
-	j main_loop
-
-executar_salvar:
-	j main_loop
+	move $a0, $v0 # carrega o endereço da string retornado da função anterior para buscar pelo proximo "-"
+	li $a1, 45 # carrega o "-" para $t1 (45 é o "-" em ASCII)
+	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	move $s2, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
 	
-executar_recarregar:
-	j main_loop
+	move $a0, $s0 # passa os resultados do parsing das opções do usuário como argumento
+	move $a1, $s1 # passa os resultados do parsing das opções do usuário como argumento
+	move $a2, $s2 # passa os resultados do parsing das opções do usuário como argumento
 
-executar_formatar:
-	j main_loop
+	# jal funcao_cadastrar # chama a função em si
+	
+	j main_loop # retorna para o loop central
+
+executar_conta_format: # ponto de entrada do comando conta_format 
+	la $a0, input_buffer # carrega o endereço da string do input_buffer para o registrador $t0
+	
+	# fazendo o parsing dos argumentos do comando do usuário:
+	li $t1, 45 # carrega o "-" para $a1 (45 é o "-" em ASCII)
+	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	move $s0, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
+	
+	move $a0, $s0 # passa os resultados do parsing das opções do usuário como argumento
+
+	# jal funcao_format # chama a função em si
+	
+	j main_loop # retorna para o loop central
+
+executar_debito_extrato: # ponto de entrada do comando debito_extrato
+	la $a0, input_buffer # carrega o endereço da string do input_buffer para o registrador $t0
+	
+	# fazendo o parsing dos argumentos do comando do usuário:
+	li $t1, 45 # carrega o "-" para $a1 (45 é o "-" em ASCII)
+	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	move $s0, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
+	
+	move $a0, $s0 # passa os resultados do parsing das opções do usuário como argumento
+
+	# jal funcao_debito_extrato # chama a função em si
+	j main_loop # retorna para o loop central
+
+executar_credito_extrato: # ponto de entrada do comando credito_extrato
+	la $a0, input_buffer # carrega o endereço da string do input_buffer para o registrador $t0
+	
+	# fazendo o parsing dos argumentos do comando do usuário:
+	li $t1, 45 # carrega o "-" para $a1 (45 é o "-" em ASCII)
+	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	move $s0, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
+	
+	move $a0, $s0 # passa os resultados do parsing das opções do usuário como argumento
+
+	# jal funcao_credito_extrato # chama a função em si
+	j main_loop # retorna para o loop central
+
+executar_transferir_debito: # ponto de entrada do comando transferir_debito
+	la $a0, input_buffer # carrega o endereço da string do input_buffer para o registrador $t0
+	
+	# fazendo o parsing dos argumentos do comando do usuário:
+	li $t1, 45 # carrega o "-" para $a1 (45 é o "-" em ASCII)
+	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	move $s0, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
+	
+	move $a0, $v0 # carrega o endereço da string retornado da função anterior para buscar pelo proximo "-"
+	li $a1, 45 # carrega o "-" para $t1 (45 é o "-" em ASCII)
+	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	move $s1, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
+	
+	move $a0, $v0 # carrega o endereço da string retornado da função anterior para buscar pelo proximo "-"
+	li $a1, 45 # carrega o "-" para $t1 (45 é o "-" em ASCII)
+	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	move $s2, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
+	
+	move $a0, $s0 # passa os resultados do parsing das opções do usuário como argumento
+	move $a1, $s1 # passa os resultados do parsing das opções do usuário como argumento
+	move $a2, $s2 # passa os resultados do parsing das opções do usuário como argumento
+
+	# jal funcao_transferir_debito # chama a função em si
+	j main_loop # retorna para o loop central
+
+executar_transferir_credito: # ponto de entrada do comando transferir_credito
+	la $a0, input_buffer # carrega o endereço da string do input_buffer para o registrador $t0
+	
+	# fazendo o parsing dos argumentos do comando do usuário:
+	li $t1, 45 # carrega o "-" para $a1 (45 é o "-" em ASCII)
+	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	move $s0, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
+	
+	move $a0, $v0 # carrega o endereço da string retornado da função anterior para buscar pelo proximo "-"
+	li $a1, 45 # carrega o "-" para $t1 (45 é o "-" em ASCII)
+	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	move $s1, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
+	
+	move $a0, $v0 # carrega o endereço da string retornado da função anterior para buscar pelo proximo "-"
+	li $a1, 45 # carrega o "-" para $t1 (45 é o "-" em ASCII)
+	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	move $s2, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
+	
+	move $a0, $s0 # passa os resultados do parsing das opções do usuário como argumento
+	move $a1, $s1 # passa os resultados do parsing das opções do usuário como argumento
+	move $a2, $s2 # passa os resultados do parsing das opções do usuário como argumento
+
+	# jal funcao_transferir_debito # chama a função em si
+	j main_loop # retorna para o loop central
+	
+executar_pagar_fatura: # ponto de entrada do comando pagar_fatura
+		la $a0, input_buffer # carrega o endereço da string do input_buffer para o registrador $t0
+	
+	# fazendo o parsing dos argumentos do comando do usuário:
+	li $t1, 45 # carrega o "-" para $a1 (45 é o "-" em ASCII)
+	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	move $s0, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
+	
+	move $a0, $v0 # carrega o endereço da string retornado da função anterior para buscar pelo proximo "-"
+	li $a1, 45 # carrega o "-" para $t1 (45 é o "-" em ASCII)
+	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	move $s1, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
+	
+	move $a0, $v0 # carrega o endereço da string retornado da função anterior para buscar pelo proximo "-"
+	li $a1, 45 # carrega o "-" para $t1 (45 é o "-" em ASCII)
+	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	move $s2, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
+	
+	move $a0, $s0 # passa os resultados do parsing das opções do usuário como argumento
+	move $a1, $s1 # passa os resultados do parsing das opções do usuário como argumento
+	move $a2, $s2 # passa os resultados do parsing das opções do usuário como argumento
+
+	# jal funcao_pagar_fatura # chama a função em si
+
+	j main_loop # retorna para o loop central
+
+executar_sacar: # ponto de entrada do comando sacar
+	la $a0, input_buffer # carrega o endereço da string do input_buffer para o registrador $t0
+	
+	# fazendo o parsing dos argumentos do comando do usuário:
+	li $t1, 45 # carrega o "-" para $a1 (45 é o "-" em ASCII)
+	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	move $s0, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
+	
+	move $a0, $v0 # carrega o endereço da string retornado da função anterior para buscar pelo proximo "-"
+	li $a1, 45 # carrega o "-" para $t1 (45 é o "-" em ASCII)
+	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	move $s1, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
+	
+	move $a0, $s0 # passa os resultados do parsing das opções do usuário como argumento
+	move $a1, $s1 # passa os resultados do parsing das opções do usuário como argumento
+
+	# jal funcao_sacar # chama a função em si
+	j main_loop # retorna para o loop central
+
+executar_depositar: # ponto de entrada do comando depositar
+	la $a0, input_buffer # carrega o endereço da string do input_buffer para o registrador $t0
+	
+	# fazendo o parsing dos argumentos do comando do usuário:
+	li $t1, 45 # carrega o "-" para $a1 (45 é o "-" em ASCII)
+	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	move $s0, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
+	
+	move $a0, $v0 # carrega o endereço da string retornado da função anterior para buscar pelo proximo "-"
+	li $a1, 45 # carrega o "-" para $t1 (45 é o "-" em ASCII)
+	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	move $s1, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
+	
+	move $a0, $s0 # passa os resultados do parsing das opções do usuário como argumento
+	move $a1, $s1 # passa os resultados do parsing das opções do usuário como argumento
+
+	# jal funcao_depositar # chama a função em si
+	j main_loop # retorna para o loop central
+
+executar_alterar_limite: # ponto de entrada do comando alterar_limite
+	la $a0, input_buffer # carrega o endereço da string do input_buffer para o registrador $t0
+	
+	# fazendo o parsing dos argumentos do comando do usuário:
+	li $t1, 45 # carrega o "-" para $a1 (45 é o "-" em ASCII)
+	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	move $s0, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
+	
+	move $a0, $v0 # carrega o endereço da string retornado da função anterior para buscar pelo proximo "-"
+	li $a1, 45 # carrega o "-" para $t1 (45 é o "-" em ASCII)
+	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	move $s1, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
+	
+	move $a0, $s0 # passa os resultados do parsing das opções do usuário como argumento
+	move $a1, $s1 # passa os resultados do parsing das opções do usuário como argumento
+
+	# jal funcao_alterar_limite # chama a função em si
+	j main_loop # retorna para o loop central
+
+executar_conta_fechar: # ponto de entrada do comando conta_fechar
+	la $a0, input_buffer # carrega o endereço da string do input_buffer para o registrador $t0
+	
+	# fazendo o parsing dos argumentos do comando do usuário:
+	li $t1, 45 # carrega o "-" para $a1 (45 é o "-" em ASCII)
+	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	move $s0, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
+	
+	move $a0, $s0 # passa os resultados do parsing das opções do usuário como argumento
+
+	# jal funcao_conta_fechar# chama a função em si
+	j main_loop # retorna para o loop central
+
+executar_data_hora: # ponto de entrada do comando data_hora
+	la $a0, input_buffer # carrega o endereço da string do input_buffer para o registrador $t0
+	
+	# fazendo o parsing dos argumentos do comando do usuário:
+	li $t1, 45 # carrega o "-" para $a1 (45 é o "-" em ASCII)
+	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	move $s0, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
+	
+	move $a0, $v0 # carrega o endereço da string retornado da função anterior para buscar pelo proximo "-"
+	li $a1, 45 # carrega o "-" para $t1 (45 é o "-" em ASCII)
+	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	move $s1, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
+	
+	move $a0, $s0 # passa os resultados do parsing das opções do usuário como argumento
+	move $a1, $s1 # passa os resultados do parsing das opções do usuário como argumento
+
+	# jal funcao_cadastrar # chama a função em si
+	j main_loop # retorna para o loop central
+
+executar_salvar: # ponto de entrada do comando salvar
+	j main_loop # retorna para o loop central
+	
+executar_recarregar: # ponto de entrada do comando recarregar 
+	j main_loop # retorna para o loop central
+
+executar_formatar: # ponto de entrada do comando formatar
+	j main_loop # retorna para o loop central
 		

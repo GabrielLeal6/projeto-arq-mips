@@ -2,7 +2,6 @@
 # Atividade da primeira VA de 2025.2 de Arquitetura e Organização de Computadores
 # Arquivo referente a definição dos tamanhos dos dados usados
 
-.include "utils.asm"
 
 .data
 	msgConfirmarFormat: .asciiz "Você tem certeza que deseja apagar? (s/n): "
