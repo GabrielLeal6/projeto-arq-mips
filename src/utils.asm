@@ -2,6 +2,10 @@
 # Atividade da primeira VA de 2025.2 de Arquitetura e Organização de Computadores
 # Arquivo referente a funções gerais que serão usadas no projeto
 
+.include "Q1_strings.asm"
+.include "io_utils.asm"
+.include "banco_dados.asm"
+
 .data
 	msgEncontrado:	  .asciiz "Cliente encontrado"
 	msgNaoEncontrado: .asciiz "Não foi encontrado um cliente com este número de conta."
@@ -47,7 +51,7 @@ encontrado:
 	move $v0, $t3 # Mover o resultado para o registrador de retorno
 	la $a2, msgEncontrado
 	jal print_string_mmio
-	j terminar
+	j encontrarTerminar
 	
 naoEncontrado:
 	la $a2, msgNaoEncontrado
