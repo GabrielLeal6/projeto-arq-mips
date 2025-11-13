@@ -22,7 +22,7 @@ conta_format:
 	
 	jal encontrarCliente
 	
-	beqz $v0, formatarErro
+	beqz $v0, contaFormatErro
 	move $s1, $v0
 	
 	la $a0, msgConfirmarFormat
@@ -33,32 +33,32 @@ conta_format:
 	
 	lb $t0, input_buffer
 	li $t1, 's'
-	bne $t0, $t1, formatarCancelar
+	bne $t0, $t1, contaFormatCancelar
 	
 	add $t0, $s1, 76
 	li $t1, 6400
 	add $t1, $t0, $t1
 
-formatarLoop:
-	bge $t0, $t1, formatarZerar
+contaFormatLoop:
+	bge $t0, $t1, contaFormatZerar
 	sw $zero, 0($t0)
 	addi $t0, $t0, 4
-	j formatarLoop
-formatarZerar:
+	j contaFormatLoop
+contaFormatZerar:
 	la $a0, msgOkFormat
 	jal print_string_mmio
-	j formatarTerminar
+	j contaFormatTerminar
 	
-formatarErro:
+contaFormatErro:
 	la $a0, msgErroFormat
 	jal print_string_mmio
-	j formatarTerminar
+	j contaFormatTerminar
 
-formatarCancelar:
+contaFormatCancelar:
 	la $a0, msgCancelarFormat
 	jal print_string_mmio
 
-formatarTerminar:
+contaFormatTerminar:
 	lw $ra, 0($sp)
 	lw $s0, 4($sp)
 	lw $s1, 8($sp)
