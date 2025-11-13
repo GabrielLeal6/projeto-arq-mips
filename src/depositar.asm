@@ -17,7 +17,7 @@ depositar:
 	
 	move $s2, $a1
 	
-	jal encontrarCleinte
+	jal encontrarCliente
 	beqz $v0, depositarTerminar
 	move $s0, $v0
 	
