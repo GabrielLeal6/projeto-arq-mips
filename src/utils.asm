@@ -29,7 +29,7 @@ encontrarLoop:
 	bge $t0, $t1, naoEncontrado # Condição de parada do sistema
 	
 	# Calcula o endereço em que o cliente está armazenado
-	li $t3, 3305 
+	li $t3, 6505 
 	mul $t3, $t0, $t3
 	add $t3, $t2, $t3 # Armazena o endereço base en $t3
 	

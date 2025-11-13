@@ -35,7 +35,7 @@ conta_format:
 	bne $t0, $t1, formatarCancelar
 	
 	add $t0, $s1, 76
-	li $t1, 3200
+	li $t1, 6400
 	add $t1, $t0, $t1
 
 formatarLoop:
