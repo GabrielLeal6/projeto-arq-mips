@@ -46,23 +46,109 @@ main_loop: # loop principal da função main (funciona como uma shell)
 	la $a0, input_buffer # carrega o endereço da string do input_buffer para o registrador de argumento
 	jal read_line_mmio # faz a leitura da digitação
 	
+	
+	# Bloco de verificação de cada possível input do usuário
+	# verifica se o input começa com "conta_cadastrar"
+	la $a0, input_buffer # carrega em $a0 o buffer do input do usuário
+	la $a1, cmd_conta_cadastrar # carrega em $a0 o nome do comando para comparação
+	li $a3, 15 # carrega em $a3 o numero de caracteres a serem comparados em strncmp
+	jal strncmp # faz a comparação dos dois strings
+	beqz $v0, executar_conta_cadastrar # executa a função executar_conta_cadastrar
+	
+	# verifica se o input começa com "conta_format"
+	la $a0, input_buffer # carrega em $a0 o buffer do input do usuário
+	la $a1, cmd_conta_format # carrega em $a0 o nome do comando para comparação
+	li $a3, 12 # carrega em $a3 o numero de caracteres a serem comparados em strncmp
+	jal strncmp # faz a comparação dos dois strings
+	beqz $v0, executar_conta_format # executa a função executar_conta_format
+	
+	# verifica se o input começa com "debito_extrato"
+	la $a0, input_buffer # carrega em $a0 o buffer do input do usuário
+	la $a1, cmd_debito_extrato # carrega em $a0 o nome do comando para comparação
+	li $a3, 14 # carrega em $a3 o numero de caracteres a serem comparados em strncmp
+	jal strncmp # faz a comparação dos dois strings
+	beqz $v0, executar_debito_extrato # executa a função executar_debito_extrato
+	
+	# verifica se o input começa com "credito_extrato"
+	la $a0, input_buffer # carrega em $a0 o buffer do input do usuário
+	la $a1, cmd_credito_extrato # carrega em $a0 o nome do comando para comparação
+	li $a3, 15 # carrega em $a3 o numero de caracteres a serem comparados em strncmp
+	jal strncmp # faz a comparação dos dois strings
+	beqz $v0, executar_credito_extrato # executa a função executar_credito_extrato
+	
+	# verifica se o input começa com "transferir_debito"
+	la $a0, input_buffer # carrega em $a0 o buffer do input do usuário
+	la $a1, cmd_transferir_debito # carrega em $a0 o nome do comando para comparação
+	li $a3, 17 # carrega em $a3 o numero de caracteres a serem comparados em strncmp
+	jal strncmp # faz a comparação dos dois strings
+	beqz $v0, executar_transferir_debito # executa a função executar_transferir_debito
+	
+	# verifica se o input começa com "transferir_credito"
+	la $a0, input_buffer # carrega em $a0 o buffer do input do usuário
+	la $a1, cmd_transferir_credito # carrega em $a0 o nome do comando para comparação
+	li $a3, 18 # carrega em $a3 o numero de caracteres a serem comparados em strncmp
+	jal strncmp # faz a comparação dos dois strings
+	beqz $v0, executar_transferir_credito # executa a função executar_transferir_credito
+
+	# verifica se o input começa com "pagar_fatura"
+	la $a0, input_buffer # carrega em $a0 o buffer do input do usuário
+	la $a1, cmd_pagar_fatura # carrega em $a0 o nome do comando para comparação
+	li $a3, 12 # carrega em $a3 o numero de caracteres a serem comparados em strncmp
+	jal strncmp # faz a comparação dos dois strings
+	beqz $v0, executar_pagar_fatura # executa a função executar_pagar_fatura
+
+	# verifica se o input começa com "sacar"
+	la $a0, input_buffer # carrega em $a0 o buffer do input do usuário
+	la $a1, cmd_sacar # carrega em $a0 o nome do comando para comparação
+	li $a3, 5 # carrega em $a3 o numero de caracteres a serem comparados em strncmp
+	jal strncmp # faz a comparação dos dois strings
+	beqz $v0, executar_sacar # executa a função executar_sacar
+		
+	# verifica se o input começa com "depositar"
+	la $a0, input_buffer # carrega em $a0 o buffer do input do usuário
+	la $a1, cmd_depositar # carrega em $a0 o nome do comando para comparação
+	li $a3, 10 # carrega em $a3 o numero de caracteres a serem comparados em strncmp
+	jal strncmp # faz a comparação dos dois strings
+	beqz $v0, executar_depositar # executa a função executar_depositar
+	
+	# verifica se o input começa com "alterar_limite"
+	la $a0, input_buffer # carrega em $a0 o buffer do input do usuário
+	la $a1, cmd_alterar_limite # carrega em $a0 o nome do comando para comparação
+	li $a3, 14 # carrega em $a3 o numero de caracteres a serem comparados em strncmp
+	jal strncmp # faz a comparação dos dois strings
+	beqz $v0, executar_alterar_limite # executa a função executar_alterar_limite
+	
+	# verifica se o input começa com "conta_fechar"
+	la $a0, input_buffer # carrega em $a0 o buffer do input do usuário
+	la $a1, cmd_conta_fechar # carrega em $a0 o nome do comando para comparação
+	li $a3, 12 # carrega em $a3 o numero de caracteres a serem comparados em strncmp
+	jal strncmp # faz a comparação dos dois strings
+	beqz $v0, executar_conta_fechar # executa a função executar_conta_fechar
+	
+	# verifica se o input começa com "data_hora"
+	la $a0, input_buffer # carrega em $a0 o buffer do input do usuário
+	la $a1, cmd_data_hora # carrega em $a0 o nome do comando para comparação
+	li $a3, 9 # carrega em $a3 o numero de caracteres a serem comparados em strncmp
+	jal strncmp # faz a comparação dos dois strings	
+	beqz $v0, executar_data_hora # executa a função executar_data_hora
+	
 	# verifica se o input é "salvar"
-	la $a0, input_buffer
-	la $a1, cmd_salvar
-	jal strcmp
-	beqz $v0, executar_salvar
+	la $a0, input_buffer # carrega em $a0 o buffer do input do usuário
+	la $a1, cmd_salvar # carrega em $a1 o nome do comando para comparação
+	jal strcmp # faz a comparação dos dois strings
+	beqz $v0, executar_salvar # executa a função salvar
 	
 	# verifica se o input é "recarregar"
-	la $a0, input_buffer
-	la $a1, cmd_recarregar
-	jal strcmp
-	beqz $v0, executar_recarregar
+	la $a0, input_buffer # carrega em $a0 o buffer do input do usuário
+	la $a1, cmd_recarregar # carrega em $a1 o nome do comando para comparação
+	jal strcmp # faz a comparação dos dois strings
+	beqz $v0, executar_recarregar # executa a função recarregar
 	
 	# verifica se o input é "formatar"
-	la $a0, input_buffer
-	la $a1, cmd_formatar
-	jal strcmp
-	beqz $v0, executar_formatar
+	la $a0, input_buffer # carrega em $a0 o buffer do input do usuário
+	la $a1, cmd_formatar # carrega em $a1 o nome do comando para comparação
+	jal strcmp # faz a comparação dos dois strings
+	beqz $v0, executar_formatar # executa a função formatar
 	
 	# caso todas o input passe por todas as verificações então é inválido 
 	la $a0, msg_cmd_invalido # carrega o endereço da string da mensagem de comando inválido para o registrador de argumento
@@ -73,19 +159,19 @@ main_loop: # loop principal da função main (funciona como uma shell)
 
 
 executar_conta_cadastrar:
-	jr $ra
+	j main_loop
 
 executar_conta_format:
-	jr $ra
+	j main_loop
 
 executar_debito_extrato:
-	jr $ra
+	j main_loop
 
 executar_credito_extrato:
-	jr $ra
+	j main_loop
 
 executar_transferir_debito:
-	jr $ra
+	j main_loop
 
 executar_transferir_credito:
 	j main_loop
