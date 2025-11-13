@@ -51,11 +51,11 @@ formatarErro:
 	jal print_string_mmio
 	j formatarTerminar
 
-formatarCancelar
+formatarCancelar:
 	la $a0, msgCancelarFormat
 	jal print_string_mmio
 
-formatarTerminar
+formatarTerminar:
 	lw $ra, 0($sp)
 	lw $s0, 4($sp)
 	lw $s1, 8($sp)
