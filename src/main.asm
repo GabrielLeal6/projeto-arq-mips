@@ -159,6 +159,11 @@ main_loop: # loop principal da função main (funciona como uma shell)
 
 
 executar_conta_cadastrar:
+	la $t0, input_buffer
+	li $t1, 45 # carrega o "-" para $t1 (45 é o "-" em ASCII)
+	
+
+	
 	j main_loop
 
 executar_conta_format:

@@ -1,6 +1,6 @@
 # Grupo composto pelos alunos Gabriel Leal de Queiroz e Caio Vinicius Marinho
 # Atividade da primeira VA de 2025.2 de Arquitetura e Organização de Computadores
-# Arquivo referente a gestão do MMIO para o projeto principal
+# Arquivo referente a gestão do MMIO par o projeto principal
 
 
 .data
@@ -69,5 +69,28 @@ loop_esperar_display: # loop para esperar o display estar pronto
 fim_print_string: # ponto de saída da função print_string_mmio
 	jr $ra # retorna para a parte do código de onde foi invocado
 	
+
+encontrar_caracterer_e_anular:
+
+loop_encontrar_caractere:
+	lb $t0, 0($a0)
+	beqz $t0, caractere_nao_encontrado # Checa se é o fim da string (\0), Se for nulo, não achou o char, retorna 0
+	beq $t0, $a1, caractere_encontrado # Se for o cacactere, pula para 'encontrado'
+
+	addi $a0, $a0, 1
+	j loop_encontrar_caractere
+
+caractere_encontrado:
+	
+	sb $zero, 0($a0)
+	
+	addi $v0, $a0, 1
+	jr $ra
+	
+caractere_nao_encontrado:
+	move $v0, $zero
+	jr $ra
+
+
 	
 	
