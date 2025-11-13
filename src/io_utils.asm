@@ -69,27 +69,27 @@ loop_esperar_display: # loop para esperar o display estar pronto
 fim_print_string: # ponto de saída da função print_string_mmio
 	jr $ra # retorna para a parte do código de onde foi invocado
 	
+.globl encontrar_caractere_e_anular
+encontrar_caractere_e_anular: # ponto de entrada função encontrar_caractere_e_anular
 
-encontrar_caracterer_e_anular:
-
-loop_encontrar_caractere:
-	lb $t0, 0($a0)
+loop_encontrar_caractere: # loop para encontrar o caractere desejado
+	lb $t0, 0($a0) # salva em $t0 o caractere que estamos buscando
 	beqz $t0, caractere_nao_encontrado # Checa se é o fim da string (\0), Se for nulo, não achou o char, retorna 0
 	beq $t0, $a1, caractere_encontrado # Se for o cacactere, pula para 'encontrado'
 
-	addi $a0, $a0, 1
-	j loop_encontrar_caractere
+	addi $a0, $a0, 1 # move o ponteiro
+	j loop_encontrar_caractere # volta para o começo se não encontrou
 
-caractere_encontrado:
+caractere_encontrado: # ponto de entrada da seção da função caso tenha encontrado o caractere
 	
-	sb $zero, 0($a0)
+	sb $zero, 0($a0) # apaga o byte na string
 	
-	addi $v0, $a0, 1
-	jr $ra
+	addi $v0, $a0, 1 # retorna 1
+	jr $ra # # retorna para a parte do código de onde foi invocado
 	
-caractere_nao_encontrado:
-	move $v0, $zero
-	jr $ra
+caractere_nao_encontrado: # se o caractere não foi encontrado na string
+	move $v0, $zero # retorna 0
+	jr $ra # volta para o começo se não encontrou
 
 
 	
