@@ -9,6 +9,7 @@
 	msgErroConta: .asciiz "Número da conta já em uso."
 	
 .text
+
 calcularDV:
     # Registradores:
     # $s0 = acumulador da soma
