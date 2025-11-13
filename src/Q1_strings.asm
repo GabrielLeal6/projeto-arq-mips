@@ -75,8 +75,7 @@ strcmp_inteiro_negativo: # resultado caso o primeiro caractere diferente seja me
 strcmp_inteiro_positivo: # resultado caso o primeiro caractere diferente seja maior em str1 que em str2
 	addi $v0, $zero, 1 # retorna 1
 	jr $ra # retorna para o código na seção que invocou a função strcmp
-	
-
+ 
 # função que compara duas strings até no máximo um número (num) de bytes
 .globl strncmp
 strncmp: # ponto de entrada da função strncmp

@@ -20,6 +20,8 @@ loop_ler_mmio: # entrada do loop de leitura do teclado
 	beqz $t1, loop_ler_mmio # Se não estiver pronto, volta para o começo do loop
 
 	lw $t2, 4($t0) # carrega o caractere pronto em $t2
+	
+	sb $t2, 0($a0)  # salva o caractere no buffer
 
 loop_display_mmio: # entrada da parte de display
 	lw $t3, 8($t0) # carrega o status do display
