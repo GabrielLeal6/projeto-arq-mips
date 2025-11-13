@@ -1,0 +1,3 @@
+# Grupo composto pelos alunos Gabriel Leal de Queiroz e Caio Vinicius Marinho
+# Atividade da primeira VA de 2025.2 de Arquitetura e Organização de Computadores
+# Arquivo referente a persistência dos dados gerados

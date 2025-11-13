@@ -17,5 +17,5 @@
 	
 	.eqv SIZE_CLIENTE SIZE_FIXOS + SIZE_TRANS_TOTAL #  96 + 3200 = 3296
 	
-	banco_clientes: .space 164800 # 50 * SIZE_CLIENTE
-	
+	banco_clientes:    .space 164800 # 50 * SIZE_CLIENTE
+	contador_clientes: .word 00 # Número atual de clientes cadastrados
