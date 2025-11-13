@@ -10,6 +10,8 @@
 	msgCancelarFormat:  .asciiz "Operação cancelada.\n"
 
 .text
+
+.globl
 conta_format:
 	addi $sp, $sp, 12
 	sw $ra, 0($sp)
