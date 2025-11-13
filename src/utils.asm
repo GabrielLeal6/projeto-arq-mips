@@ -3,6 +3,9 @@
 # Arquivo referente a funções gerais que serão usadas no projeto
 
 .data
+	msgEncontrado:	  .asciiz "Cliente encontrado"
+	msgNaoEncontrado: .asciiz "Não foi encontrado um cliente com este número de conta."
+	
 	.eqv DESVIO_CONTA 76
 
 .text
@@ -36,15 +39,19 @@ encontrarLoop:
 	# Reação ao resultado
 	beq $v0, 1, encontrado
 	
-	# Sequência no loop
+	# Dá sequência ao loop
 	addi $t0, $t0, 1
 	j encontrarLoop
 
 encontrado:
 	move $v0, $t3 # Mover o resultado para o registrador de retorno
+	la $a2, msgEncontrado
+	jal print_string_mmio
 	j terminar
 	
 naoEncontrado:
+	la $a2, msgNaoEncontrado
+	jal print_string_mmio
 	li $v0, 0 # Retorna 0 (NULL) 
 	
 terminar:
