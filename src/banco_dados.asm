@@ -21,7 +21,6 @@
 	
 	.eqv SIZE_CLIENTE SIZE_FIXOS + SIZE_TRANS_TOTAL #  105 + 6400 = 6505
 	
-	banco_clientes:    .space 325250 # 50 * SIZE_CLIENTE
 	.globl banco_clientes
 	banco_clientes:    .space 325250 # 50 * SIZE_CLIENTE
 	.globl contador_clientes
