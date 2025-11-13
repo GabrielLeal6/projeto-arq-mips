@@ -35,7 +35,9 @@
 .globl main
 main: # ponto de entrada principal do projeto
 	
-	# provavelmente aqui vai ter alguma forma de startup que a gente só quer rodar uma vez
+	# R10: Recarrega dados automaticamente ao iniciar
+	la $t9, funcao_recarregar # carrega o endereço da função de recarregar
+	jalr $t9 # chama função recarregar no startup
 	
 	j main_loop # pula para o loop da função main
 
@@ -153,11 +155,7 @@ main_loop: # loop principal da função main (funciona como uma shell)
 	jal strcmp # faz a comparação dos dois strings
 	beqz $v0, executar_formatar # executa a função formatar
 	
-	# caso todas o input passe por todas as verificações então é inválido 
-	la $a0, msg_cmd_invalido # carrega o endereço da string da mensagem de comando inválido para o registrador de argumento
-	jal print_string_mmio # printa a menssagem de comando inválido
-	
-	j main_loop # repete o loop da shell
+	j imprimir_invalido_e_loop # caso o comando seja inválido
 
 
 
@@ -167,25 +165,26 @@ executar_conta_cadastrar: # ponto de entrada do comando conta_cadastrar
 	# fazendo o parsing dos argumentos do comando do usuário:
 	li $t1, 45 # carrega o "-" para $a1 (45 é o "-" em ASCII)
 	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	beqz $v0, imprimir_invalido_e_loop # Se $v0 == 0, argumento não foi encontrado
 	move $s0, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
 	
 	move $a0, $v0 # carrega o endereço da string retornado da função anterior para buscar pelo proximo "-"
 	li $a1, 45 # carrega o "-" para $t1 (45 é o "-" em ASCII)
 	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	beqz $v0, imprimir_invalido_e_loop # Se $v0 == 0, argumento não foi encontrado
 	move $s1, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
 	
 	move $a0, $v0 # carrega o endereço da string retornado da função anterior para buscar pelo proximo "-"
 	li $a1, 45 # carrega o "-" para $t1 (45 é o "-" em ASCII)
 	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	beqz $v0, imprimir_invalido_e_loop # Se $v0 == 0, argumento não foi encontrado
 	move $s2, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
 	
 	move $a0, $s0 # passa os resultados do parsing das opções do usuário como argumento
 	move $a1, $s1 # passa os resultados do parsing das opções do usuário como argumento
 	move $a2, $s2 # passa os resultados do parsing das opções do usuário como argumento
 
-	# jal funcao_cadastrar # chama a função em si
-	
-	j main_loop # retorna para o loop central
+	j imprimir_invalido_e_loop # caso o comando seja inválido 
 
 executar_conta_format: # ponto de entrada do comando conta_format 
 	la $a0, input_buffer # carrega o endereço da string do input_buffer para o registrador $t0
@@ -193,11 +192,13 @@ executar_conta_format: # ponto de entrada do comando conta_format
 	# fazendo o parsing dos argumentos do comando do usuário:
 	li $t1, 45 # carrega o "-" para $a1 (45 é o "-" em ASCII)
 	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	beqz $v0, imprimir_invalido_e_loop # Se $v0 == 0, argumento não foi encontrado
 	move $s0, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
 	
 	move $a0, $s0 # passa os resultados do parsing das opções do usuário como argumento
 
-	# jal funcao_format # chama a função em si
+	la $t9, funcao_conta_format # carrega o endereço da função
+	jalr $t9 # chama a função em si
 	
 	j main_loop # retorna para o loop central
 
@@ -207,11 +208,13 @@ executar_debito_extrato: # ponto de entrada do comando debito_extrato
 	# fazendo o parsing dos argumentos do comando do usuário:
 	li $t1, 45 # carrega o "-" para $a1 (45 é o "-" em ASCII)
 	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	beqz $v0, imprimir_invalido_e_loop # Se $v0 == 0, argumento não foi encontrado
 	move $s0, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
 	
 	move $a0, $s0 # passa os resultados do parsing das opções do usuário como argumento
 
-	# jal funcao_debito_extrato # chama a função em si
+	#la $t9, funcao_debito_extrato # carrega o endereço da função
+	jalr $t9 # chama a função em si
 	j main_loop # retorna para o loop central
 
 executar_credito_extrato: # ponto de entrada do comando credito_extrato
@@ -220,11 +223,13 @@ executar_credito_extrato: # ponto de entrada do comando credito_extrato
 	# fazendo o parsing dos argumentos do comando do usuário:
 	li $t1, 45 # carrega o "-" para $a1 (45 é o "-" em ASCII)
 	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	beqz $v0, imprimir_invalido_e_loop # Se $v0 == 0, argumento não foi encontrado
 	move $s0, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
 	
 	move $a0, $s0 # passa os resultados do parsing das opções do usuário como argumento
 
-	# jal funcao_credito_extrato # chama a função em si
+	# la $t9, funcao_credito_extrato # carrega o endereço da função
+	jalr $t9 # chama a função em si
 	j main_loop # retorna para o loop central
 
 executar_transferir_debito: # ponto de entrada do comando transferir_debito
@@ -233,23 +238,27 @@ executar_transferir_debito: # ponto de entrada do comando transferir_debito
 	# fazendo o parsing dos argumentos do comando do usuário:
 	li $t1, 45 # carrega o "-" para $a1 (45 é o "-" em ASCII)
 	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	beqz $v0, imprimir_invalido_e_loop # Se $v0 == 0, argumento não foi encontrado
 	move $s0, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
 	
 	move $a0, $v0 # carrega o endereço da string retornado da função anterior para buscar pelo proximo "-"
 	li $a1, 45 # carrega o "-" para $t1 (45 é o "-" em ASCII)
 	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	beqz $v0, imprimir_invalido_e_loop # Se $v0 == 0, argumento não foi encontrado
 	move $s1, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
 	
 	move $a0, $v0 # carrega o endereço da string retornado da função anterior para buscar pelo proximo "-"
 	li $a1, 45 # carrega o "-" para $t1 (45 é o "-" em ASCII)
 	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	beqz $v0, imprimir_invalido_e_loop # Se $v0 == 0, argumento não foi encontrado
 	move $s2, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
 	
 	move $a0, $s0 # passa os resultados do parsing das opções do usuário como argumento
 	move $a1, $s1 # passa os resultados do parsing das opções do usuário como argumento
 	move $a2, $s2 # passa os resultados do parsing das opções do usuário como argumento
 
-	# jal funcao_transferir_debito # chama a função em si
+	# la $t9, funcao_transferir_debito # carrega o endereço da função
+	jalr $t9 # chama a função em si
 	j main_loop # retorna para o loop central
 
 executar_transferir_credito: # ponto de entrada do comando transferir_credito
@@ -258,23 +267,27 @@ executar_transferir_credito: # ponto de entrada do comando transferir_credito
 	# fazendo o parsing dos argumentos do comando do usuário:
 	li $t1, 45 # carrega o "-" para $a1 (45 é o "-" em ASCII)
 	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	beqz $v0, imprimir_invalido_e_loop # Se $v0 == 0, argumento não foi encontrado
 	move $s0, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
 	
 	move $a0, $v0 # carrega o endereço da string retornado da função anterior para buscar pelo proximo "-"
 	li $a1, 45 # carrega o "-" para $t1 (45 é o "-" em ASCII)
 	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	beqz $v0, imprimir_invalido_e_loop # Se $v0 == 0, argumento não foi encontrado
 	move $s1, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
 	
 	move $a0, $v0 # carrega o endereço da string retornado da função anterior para buscar pelo proximo "-"
 	li $a1, 45 # carrega o "-" para $t1 (45 é o "-" em ASCII)
 	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	beqz $v0, imprimir_invalido_e_loop # Se $v0 == 0, argumento não foi encontrado
 	move $s2, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
 	
 	move $a0, $s0 # passa os resultados do parsing das opções do usuário como argumento
 	move $a1, $s1 # passa os resultados do parsing das opções do usuário como argumento
 	move $a2, $s2 # passa os resultados do parsing das opções do usuário como argumento
 
-	# jal funcao_transferir_debito # chama a função em si
+	# la $t9, funcao_transferir_credito # carrega o endereço da função
+	jalr $t9 # chama a função em si
 	j main_loop # retorna para o loop central
 	
 executar_pagar_fatura: # ponto de entrada do comando pagar_fatura
@@ -283,23 +296,27 @@ executar_pagar_fatura: # ponto de entrada do comando pagar_fatura
 	# fazendo o parsing dos argumentos do comando do usuário:
 	li $t1, 45 # carrega o "-" para $a1 (45 é o "-" em ASCII)
 	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	beqz $v0, imprimir_invalido_e_loop # Se $v0 == 0, argumento não foi encontrado
 	move $s0, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
 	
 	move $a0, $v0 # carrega o endereço da string retornado da função anterior para buscar pelo proximo "-"
 	li $a1, 45 # carrega o "-" para $t1 (45 é o "-" em ASCII)
 	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	beqz $v0, imprimir_invalido_e_loop # Se $v0 == 0, argumento não foi encontrado
 	move $s1, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
 	
 	move $a0, $v0 # carrega o endereço da string retornado da função anterior para buscar pelo proximo "-"
 	li $a1, 45 # carrega o "-" para $t1 (45 é o "-" em ASCII)
 	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	beqz $v0, imprimir_invalido_e_loop # Se $v0 == 0, argumento não foi encontrado
 	move $s2, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
 	
 	move $a0, $s0 # passa os resultados do parsing das opções do usuário como argumento
 	move $a1, $s1 # passa os resultados do parsing das opções do usuário como argumento
 	move $a2, $s2 # passa os resultados do parsing das opções do usuário como argumento
 
-	# jal funcao_pagar_fatura # chama a função em si
+	# la $t9, funcao_pagar_fatura # carrega o endereço da função
+	jalr $t9 # chama a função em si
 
 	j main_loop # retorna para o loop central
 
@@ -309,17 +326,20 @@ executar_sacar: # ponto de entrada do comando sacar
 	# fazendo o parsing dos argumentos do comando do usuário:
 	li $t1, 45 # carrega o "-" para $a1 (45 é o "-" em ASCII)
 	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	beqz $v0, imprimir_invalido_e_loop # Se $v0 == 0, argumento não foi encontrado
 	move $s0, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
 	
 	move $a0, $v0 # carrega o endereço da string retornado da função anterior para buscar pelo proximo "-"
 	li $a1, 45 # carrega o "-" para $t1 (45 é o "-" em ASCII)
 	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	beqz $v0, imprimir_invalido_e_loop # Se $v0 == 0, argumento não foi encontrado
 	move $s1, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
 	
 	move $a0, $s0 # passa os resultados do parsing das opções do usuário como argumento
 	move $a1, $s1 # passa os resultados do parsing das opções do usuário como argumento
 
-	# jal funcao_sacar # chama a função em si
+	# la $t9, funcao_sacar # carrega o endereço da função
+	jalr $t9 # chama a função em si
 	j main_loop # retorna para o loop central
 
 executar_depositar: # ponto de entrada do comando depositar
@@ -328,17 +348,20 @@ executar_depositar: # ponto de entrada do comando depositar
 	# fazendo o parsing dos argumentos do comando do usuário:
 	li $t1, 45 # carrega o "-" para $a1 (45 é o "-" em ASCII)
 	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	beqz $v0, imprimir_invalido_e_loop # Se $v0 == 0, argumento não foi encontrado
 	move $s0, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
 	
 	move $a0, $v0 # carrega o endereço da string retornado da função anterior para buscar pelo proximo "-"
 	li $a1, 45 # carrega o "-" para $t1 (45 é o "-" em ASCII)
 	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	beqz $v0, imprimir_invalido_e_loop # Se $v0 == 0, argumento não foi encontrado
 	move $s1, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
 	
 	move $a0, $s0 # passa os resultados do parsing das opções do usuário como argumento
 	move $a1, $s1 # passa os resultados do parsing das opções do usuário como argumento
 
-	# jal funcao_depositar # chama a função em si
+	# la $t9, funcao_depositar # carrega o endereço da função
+	jalr $t9 # chama a função em si
 	j main_loop # retorna para o loop central
 
 executar_alterar_limite: # ponto de entrada do comando alterar_limite
@@ -347,17 +370,20 @@ executar_alterar_limite: # ponto de entrada do comando alterar_limite
 	# fazendo o parsing dos argumentos do comando do usuário:
 	li $t1, 45 # carrega o "-" para $a1 (45 é o "-" em ASCII)
 	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	beqz $v0, imprimir_invalido_e_loop # Se $v0 == 0, argumento não foi encontrado
 	move $s0, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
 	
 	move $a0, $v0 # carrega o endereço da string retornado da função anterior para buscar pelo proximo "-"
 	li $a1, 45 # carrega o "-" para $t1 (45 é o "-" em ASCII)
 	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	beqz $v0, imprimir_invalido_e_loop # Se $v0 == 0, argumento não foi encontrado
 	move $s1, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
 	
 	move $a0, $s0 # passa os resultados do parsing das opções do usuário como argumento
 	move $a1, $s1 # passa os resultados do parsing das opções do usuário como argumento
 
-	# jal funcao_alterar_limite # chama a função em si
+	#la $t9, funcao_alterar_limite # carrega o endereço da função
+	jalr $t9 # chama a função em si
 	j main_loop # retorna para o loop central
 
 executar_conta_fechar: # ponto de entrada do comando conta_fechar
@@ -366,11 +392,13 @@ executar_conta_fechar: # ponto de entrada do comando conta_fechar
 	# fazendo o parsing dos argumentos do comando do usuário:
 	li $t1, 45 # carrega o "-" para $a1 (45 é o "-" em ASCII)
 	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	beqz $v0, imprimir_invalido_e_loop # Se $v0 == 0, argumento não foi encontrado
 	move $s0, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
 	
 	move $a0, $s0 # passa os resultados do parsing das opções do usuário como argumento
 
-	# jal funcao_conta_fechar# chama a função em si
+	# la $t9, funcao_conta_fechar # carrega o endereço da função
+	jalr $t9 # chama a função em si
 	j main_loop # retorna para o loop central
 
 executar_data_hora: # ponto de entrada do comando data_hora
@@ -379,25 +407,40 @@ executar_data_hora: # ponto de entrada do comando data_hora
 	# fazendo o parsing dos argumentos do comando do usuário:
 	li $t1, 45 # carrega o "-" para $a1 (45 é o "-" em ASCII)
 	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	beqz $v0, imprimir_invalido_e_loop # Se $v0 == 0, argumento não foi encontrado
 	move $s0, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
 	
 	move $a0, $v0 # carrega o endereço da string retornado da função anterior para buscar pelo proximo "-"
 	li $a1, 45 # carrega o "-" para $t1 (45 é o "-" em ASCII)
 	jal encontrar_caractere_e_anular # chama a função para elimar o "-"
+	beqz $v0, imprimir_invalido_e_loop # Se $v0 == 0, argumento não foi encontrado
 	move $s1, $v0 # salva em $s0 o retorno de encontrar_caractere_e_anular (o argumento a ser passado)
 	
 	move $a0, $s0 # passa os resultados do parsing das opções do usuário como argumento
 	move $a1, $s1 # passa os resultados do parsing das opções do usuário como argumento
 
-	# jal funcao_cadastrar # chama a função em si
+	# la $t9, funcao_data_hora # carrega o endereço da função
+	jalr $t9 # chama a função em si
 	j main_loop # retorna para o loop central
 
 executar_salvar: # ponto de entrada do comando salvar
+	la $t9, funcao_salvar # armazena o endereço da função_salvar
+	jalr $t9 # chama a função
 	j main_loop # retorna para o loop central
 	
 executar_recarregar: # ponto de entrada do comando recarregar 
+	la $t9, funcao_recarregar # armazena o endereço da função_recarregar
+	jalr $t9 # chama a função
 	j main_loop # retorna para o loop central
 
 executar_formatar: # ponto de entrada do comando formatar
+	la $t9, funcao_formatar # armazena o endereço da função_formatar
+	jalr $t9 # chama a função
 	j main_loop # retorna para o loop central
 		
+		
+imprimir_invalido_e_loop: # caso todas o input passe por todas as verificações então é inválido 
+	la $a0, msg_cmd_invalido # carrega o endereço da string da mensagem de comando inválido para o registrador de argumento
+	jal print_string_mmio # printa a menssagem de comando inválido
+	
+	j main_loop # repete o loop da shell

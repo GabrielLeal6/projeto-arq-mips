@@ -10,8 +10,9 @@
 	msgCancelarFormat:  .asciiz "Operação cancelada.\n"
 
 .text
-conta_format:
-	addi $sp, $sp, 12
+.globl funcao_conta_format
+funcao_conta_format:
+	addi $sp, $sp, -12
 	sw $ra, 0($sp)
 	sw $s0, 4($sp) # Armazena o endereço da conta
 	sw $s1, 8($sp) # Armazena o endereço do cliente
@@ -33,7 +34,7 @@ conta_format:
 	li $t1, 's'
 	bne $t0, $t1, formatarCancelar
 	
-	add $t0, $s1, 76
+	add $t0, $s1, 105
 	li $t1, 6400
 	add $t1, $t0, $t1
 
