@@ -5,11 +5,11 @@
 .data
 	msgEncontrado:	  .asciiz "Cliente encontrado"
 	msgNaoEncontrado: .asciiz "Não foi encontrado um cliente com este número de conta."
-	
-	.eqv DESVIO_CONTA 76
 
 .text
-encontrarConta:
+
+.globl encontrarCliente
+encontrarCliente:
 	#Registradores
 	addi $sp, $sp, -8
 	sw $ra, 0($sp) # Endereço de retorno
@@ -25,14 +25,14 @@ encontrarLoop:
 	bge $t0, $t1, naoEncontrado # Condição de parada do sistema
 	
 	# Calcula o endereço em que o cliente está armazenado
-	li $t3, SIZE_CLIENTE 
+	li $t3, 3305 
 	mul $t3, $t0, $t3
 	add $t3, $t2, $t3 # Armazena o endereço base en $t3
 	
 	# Preparação para a comparação de strings
 	move $a0, $s0 # string de input
 	
-	add $a1, $t3, DESVIO_CONTA # Endereço do cliente + desvio
+	add $a1, $t3, 76 # Endereço do cliente + desvio
 	
 	jal strcmp
 	
@@ -54,7 +54,7 @@ naoEncontrado:
 	jal print_string_mmio
 	li $v0, 0 # Retorna 0 (NULL) 
 	
-terminar:
+encontrarTerminar:
 	# Restaura registradores
 	lw $ra, 0($sp)
 	lw $s0, 4($sp)
