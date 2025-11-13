@@ -183,6 +183,8 @@ executar_conta_cadastrar: # ponto de entrada do comando conta_cadastrar
 	move $a0, $s0 # passa os resultados do parsing das opções do usuário como argumento
 	move $a1, $s1 # passa os resultados do parsing das opções do usuário como argumento
 	move $a2, $s2 # passa os resultados do parsing das opções do usuário como argumento
+	
+	jal funcao_conta_cadastrar
 
 	j main_loop # volta para o loop da main
 

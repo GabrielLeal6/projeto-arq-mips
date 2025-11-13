@@ -2,10 +2,6 @@
 # Atividade da primeira VA de 2025.2 de Arquitetura e Organização de Computadores
 # Arquivo referente a persistência dos dados gerados
 
-.data
-	nome_arquivo: .asciiz "banco.data" # nome do arquivo de dados
-	
-	
 .text
 .globl funcao_recarregar
 funcao_recarregar: # ponto de entrada de funcao_recarregar

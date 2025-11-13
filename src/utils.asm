@@ -3,93 +3,163 @@
 # Arquivo referente a funções gerais que serão usadas no projeto
 
 .data
-	msgEncontrado:	  .asciiz "Cliente encontrado"
-	msgNaoEncontrado: .asciiz "Não foi encontrado um cliente com este número de conta."
+	# Mensagens removidas para evitar interferência
 
 .text
+
 # -----------------------------------------------------------------
 # Função: encontrarCliente
-# Acha um cliente usando o número da conta.
+# Acha um cliente usando o NÚMERO DA CONTA (String XXXXXX-X).
 # Argumento: $a0 = endereço da string com o número da conta
-# Retorno:   $v0 = endereço base do cliente, ou 1 se não encontrar
+# Retorno:   $v0 = endereço base do cliente, ou 0 (NULL) se não encontrar
 # -----------------------------------------------------------------
 .globl encontrarCliente
 encontrarCliente:
-	#Registradores
-	addi $sp, $sp, -8
-	sw $ra, 0($sp) 		  # $ra = Endereço de retorno
-	sw $s0, 4($sp) 		  # $s0 = Usado para salvar $a0
+	# --- Prólogo (Salva $ra, $s0, $s1) ---
+	addi $sp, $sp, -12
+	sw $ra, 0($sp)
+	sw $s0, 4($sp) 
+	sw $s1, 8($sp)
 	
-	move $s0, $a0      	  # move endereço do número da conta para $s0
+	move $s0, $a0 				# $s0 = Ptr Conta (Input)
 	
-	li $t0, 0                 # Índice para o loop
-	lw $t1, contador_clientes # $t1 = limite de clientes
-	la $t2, banco_clientes    # $t2 = endereço do banco
+	li $t0, 0 					# $t0 = i (Índice para o loop)
+	lw $t1, contador_clientes 	# $t1 = Limite de clientes
+	la $t2, banco_clientes 		# $t2 = Endereço base do banco
 	
 encontrarLoop:
-	# Condição de parada do sistema
-	bge $t0, $t1, naoEncontrado # Caso o índice ultrapasse o limite, interrompe o loop
+	bge $t0, $t1, naoEncontrado # Se i >= limite, interompe e retorna 0
 	
-	# Calcula o endereço em que o cliente está armazenado
-	li $t3, 6505 		    # $t3 = endereço em que o cliente está armazenado
-	mul $t3, $t0, $t3	    # $t3 = i * 6505
-	add $t3, $t2, $t3 	    # $t3 += banco de clientes
+	# Calcula o endereço em que o cliente[i] está armazenado
+	li $t3, 6508 				# CORREÇÃO: SIZE_CLIENTE (6508)
+	mul $t3, $t0, $t3			# $t3 = i * 6508 (Deslocamento)
+	add $t3, $t2, $t3 			# $t3 = Endereço base do Cliente[i]
 	
 	# Preparação para a comparação de strings
-	move $a0, $s0 		    # string de input
-	add $a1, $t3, 76 	    # $a1 = Endereço do cliente + desvio
-	jal strcmp		    # Comparação entre $a0 e $a1
+	move $a0, $s0 				# $a0 = String da Conta (Input)
 	
-	# Condição de parada do sistema
-	beq $v0, 0, encontrado      # Caso $v0 = 1, interrompe o loop
+	# $a1 = Endereço da CONTA armazenada (Offset 76)
+	addi $a1, $t3, 76 			
+	
+	jal strcmp				# Compara ($a0) vs (Cliente[i].conta)
+	
+	# Se $v0 == 0 (iguais), achou!
+	beqz $v0, encontrado 
 	
 	# Dá sequência ao loop
-	addi $t0, $t0, 1	    # Incrementa o índice do loop
-	j encontrarLoop		    # Repete
+	addi $t0, $t0, 1
+	j encontrarLoop
 
 encontrado:
-	move $v0, $t3		# Move o resultado para o registrador de retorno
-	la $a2, msgEncontrado 	# Carrega a mensagem a ser impressa	
-	jal print_string_mmio	# Imprime a mensagem
-	j encontrarTerminar	# Finaliza a busca
+	move $v0, $t3 			# $v0 = Endereço base do cliente
+	j encontrarTerminar
 	
 naoEncontrado:
-	la $a2, msgNaoEncontrado # Carrega a mensagem a ser impressa
-	jal print_string_mmio	 # Imprime a mensagem
-	li $v0, 1 		 # Retorna 1  
+	move $v0, $zero 			# CORREÇÃO: Retorna 0 (NULL) em caso de falha
 	
 encontrarTerminar:
 	# Restaura registradores
 	lw $ra, 0($sp)
 	lw $s0, 4($sp)
-	addi $sp, $sp, 8
-	jr $ra 		 # Retorno
+	lw $s1, 8($sp)
+	addi $sp, $sp, 12
+	jr $ra
 
 # -----------------------------------------------------------------
+# Função: encontrarClientePorCPF (BUSCA ADICIONAL)
+# Acha um cliente usando o CPF (Offset 64).
+# Argumento: $a0 = endereço da string com o CPF
+# Retorno:   $v0 = endereço base do cliente, ou 0 (NULL) se não encontrar
+# -----------------------------------------------------------------
+.globl encontrarClientePorCPF
+encontrarClientePorCPF:
+	# --- Prólogo (Salva $ra, $s0, $s1) ---
+	addi $sp, $sp, -8
+	sw $ra, 0($sp)
+	sw $s0, 4($sp) 
+	
+	move $s0, $a0 				# $s0 = Ptr CPF (Input)
+	
+	li $t0, 0 					# $t0 = i (Índice para o loop)
+	lw $t1, contador_clientes 	
+	la $t2, banco_clientes 		
+	
+loop_find_cpf:
+	bge $t0, $t1, find_cpf_naoEncontrado 
+	
+	# Calcula o endereço do Cliente[i]
+	li $t3, 6508 				# CORREÇÃO: SIZE_CLIENTE (6508)
+	mul $t3, $t0, $t3
+	add $t3, $t2, $t3 			# $t3 = Endereço base do Cliente[i]
+	
+	# Preparação para a comparação de strings
+	move $a0, $s0 				# $a0 = String CPF (Input)
+	
+	# $a1 = Endereço do CPF armazenado (Offset 64)
+	addi $a1, $t3, 64 			
+	
+	jal strcmp
+	
+	# Se $v0 == 0 (iguais), achou!
+	beqz $v0, find_cpf_encontrado
+	
+	# Dá sequência ao loop
+	addi $t0, $t0, 1
+	j loop_find_cpf
+
+find_cpf_encontrado:
+	move $v0, $t3 				# Retorna o ponteiro do cliente
+	j find_cpf_terminar
+	
+find_cpf_naoEncontrado:
+	move $v0, $zero 			# Retorna 0 (NULL) 
+	
+find_cpf_terminar:
+	# Restaura registradores
+	lw $ra, 0($sp)
+	lw $s0, 4($sp)
+	addi $sp, $sp, 8
+	jr $ra
+	
+	
+# -----------------------------------------------------------------
 # Função: stringParaInteiro
-# Converte uma string para inteiro.
-# Argumento: $a0 = endereço da string recebida
-# Retorno:   $v0 = o valor com inteiro
+# Converte uma string numérica em um inteiro
+# Argumento: $a0 = endereço da string numérica
+# Retorno:   $v0 = valor inteiro
 # -----------------------------------------------------------------
 .globl stringParaInteiro
 stringParaInteiro:
-	li $v0, 0	# $v0 = resultado = 0
-   	li $t1, 10      # $t1 = 10 (para multiplicação)
+    # --- Prólogo ---
+    addi $sp, $sp, -12
+    sw $ra, 0($sp)
+    sw $s0, 4($sp)
+    sw $s1, 8($sp)
+    
+    move $s0, $a0           # $s0 = ponteiro da string
+    li $v0, 0               # Inicializa o resultado com 0
+    li $s1, 10              # $s1 = 10 (base decimal)
 
-conversorLoop:
-	lb $t0, 0($a0)	  # Carrega o próximo dígito
-	
-	# Pula caracteres não númericos
-	blt $t0, '0', conversorTerminar	
-	bgt $t0, '9', conversorTerminar	
-	
-	subi $t0, $t0, 48 # Converte char '0'-'9' para int 0-9
-	
-	mul $v0, $v0, $t1 # resultado *= 10
-	add $v0, $v0, $t0 # resultado += digito
-	
-	addi $a0, $a0, 1  # Avança o ponteiro da string
-	j conversorLoop	  # Dá sequência ao loop
+loop_string_para_int:
+    lb $t0, 0($s0)          # Carrega um caractere
+    beqz $t0, fim_string_para_int  # Se for null, termina
+    blt $t0, 48, fim_string_para_int  # Se não for um dígito (ASCII < '0')
+    bgt $t0, 57, fim_string_para_int  # Se não for um dígito (ASCII > '9')
+    
+    # Converte o caractere para inteiro
+    subi $t0, $t0, 48       # $t0 = digito (0-9)
+    
+    # Multiplica o resultado atual por 10 e adiciona o novo dígito
+    mul $v0, $v0, $s1
+    add $v0, $v0, $t0
+    
+    addi $s0, $s0, 1        # Avança para o próximo caractere
+    j loop_string_para_int
 
-conversorTerminar:
-	jr $ra
+fim_string_para_int:
+    # --- Epílogo ---
+    lw $ra, 0($sp)
+    lw $s0, 4($sp)
+    lw $s1, 8($sp)
+    addi $sp, $sp, 12
+    jr $ra

@@ -3,7 +3,7 @@
 # Arquivo referente a criação das funções pedidas na questão 1 da seção de de exercícios do projeto
 # Define as funções strcpy, memcpy, strcmp, strncmp e strcat
 
-j main
+#j main
 
 # Função que cópia uma string para outro endereço
 .globl strcpy
@@ -173,7 +173,7 @@ print_integer:
 
 # seção de testes/execução do programa
 .text
-main: # ponto de entrada principal do programa
+main2: # ponto de entrada principal do programa
     #teste função strcpy
     la $a0, string_livre # carrega o endereço do destino (string_livre) em $a0
     la $a1, source_string # carrega o endereço da origem (source_string) em $a1
