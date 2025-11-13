@@ -9,33 +9,39 @@
 
 .globl depositar
 depositar:
+	# Registradores
 	addi $sp, $sp, -16
-	sw $ra, 0($sp)
-	sw $s0, 4($sp)
-	sw $s1, 8($sp)
-	sw $s2, 12($sp)
+	sw $ra, 0($sp)				# $ra = endereço de retorno
+	sw $s0, 4($sp)				# $s0 = endereço do cliente
+	sw $s1, 8($sp)				# $s1 = string do valor a ser depositado
+	sw $s2, 12($sp)				# $s2 = endereço do valor a ser depositado
 	
-	move $s2, $a1
+	move $s2, $a1				# salva o endereço com o valor da string
 	
-	jal encontrarCliente
-	beqz $v0, depositarTerminar
-	move $s0, $v0
+	jal encontrarCliente		# procura o cliente
 	
-	move $a0, $s2
-	jal stringParaInteiro
-	move $s1, $v0
+	# Condição de parada da função	
+	beqz $v0, depositarTerminar	# Se $v0 = 0, interrompe o loop 
+	move $s0, $v0				# $s0 = $v0 pois se chegou até aqui, o cliente foi encontrado
 	
-	lw $t0, 85($s0)
-	add $t0, $t0, $s1
-	sw $t0, 85($s0)
+	# Converte a string do valor a ser depositado para inteiro
+	move $a0, $s2				# $a0 = endereço da string a ser convertida
+	jal stringParaInteiro		
+	move $s1, $v0				# $s1 = valor a ser depositado (inteiro)
 	
-	la $a0, msgSucessoDeposito
-	jal print_string_mmio
+	# Carrega o saldo atual do cliente
+	lw $t0, 85($s0)				# $t0 = saldo atual || 85 = offset do saldo
+	add $t0, $t0, $s1			# $t0 = saldo atual + valor a ser depositado
+	sw $t0, 85($s0)				# Salva o novo saldo
+	
+	la $a0, msgSucessoDeposito	# Carrega a mensagem de sucesso
+	jal print_string_mmio		# Imprime a mensagem
 	
 depositarTerminar:
+	# Restaura os registradores
 	lw $ra, 0($sp)
 	lw $s0, 4($sp)
 	lw $s1, 8($sp)
 	lw $s2, 12($sp)
 	addi $sp, $sp, 16
-	jr $ra		
+	jr $ra				# Retorno
