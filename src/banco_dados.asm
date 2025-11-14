@@ -20,8 +20,7 @@
 	.eqv SIZE_TRANS 64	
 	.eqv SIZE_TRANS_TOTAL 6400 # SIZE_TRANS * 100
 	
-	.eqv SIZE_CLIENTE SIZE_FIXOS + SIZE_TRANS_TOTAL #  105 + 6400 = 6505
-	
+	.eqv SIZE_CLIENTE SIZE_FIXOS + SIZE_TRANS_TOTAL #  108 + 6400 = 65058	
 	.globl banco_clientes
 	banco_clientes:    .space 325400 # 50 * SIZE_CLIENTE
 	.globl contador_clientes

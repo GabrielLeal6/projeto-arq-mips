@@ -3,15 +3,13 @@
 # Arquivo referente ao cadastro de contas no sistema (cmd_1)
 
 .data
-    #Strings de mensagens necessárias
-    msgSucesso:   .asciiz "Cliente cadastrado com sucesso. Numero da conta "
-    msgErroCPF:   .asciiz "Ja existe conta neste CPF.\n"
-    msgErroConta: .asciiz "Numero da conta ja em uso.\n"
-    msgErroBancoCheio: .asciiz "Erro: Banco de dados cheio.\n"
+    # Strings de mensagens necessárias para o cadastro
+    msgSucesso:   .asciiz "Cliente cadastrado com sucesso. Numero da conta " # Mensagem de sucesso no cadastro
+    msgErroCPF:   .asciiz "Ja existe conta neste CPF.\n"                     # Mensagem de erro para CPF duplicado
+    msgErroConta: .asciiz "Numero da conta ja em uso.\n"                     # Mensagem de erro para conta duplicada
+    msgErroBancoCheio: .asciiz "Erro: Banco de dados cheio.\n"               # Mensagem de erro para banco cheio
     
-    charHifen:    .asciiz "-"
-    
-    buffer_temp: .space 16
+    charHifen:    .asciiz "-"                                                # Caractere hífen para formatação
 
 .text
 # ----------------------------------------------------------------------
@@ -21,249 +19,200 @@
 .globl funcao_conta_cadastrar
 funcao_conta_cadastrar:
     # --- Prólogo (Salva registradores $s) ---
-    addi $sp, $sp, -24      # aloca 24 bytes na pilha
-    sw $ra, 0($sp)          # salva o endereço de retorno
-    sw $s0, 4($sp)          # salva $s0 (para Ptr CPF)
-    sw $s1, 8($sp)          # salva $s1 (para Ptr Conta)
-    sw $s2, 12($sp)         # salva $s2 (para Ptr Nome)
-    sw $s3, 16($sp)         # salva $s3 (para Ptr Base do Novo Cliente)
-    sw $s4, 20($sp)         # salva $s4 (para Valor do limite)
+    addi $sp, $sp, -24                                                       # Reserva 24 bytes na pilha
+    sw $ra, 0($sp)                                                           # Salva endereço de retorno
+    sw $s0, 4($sp)                                                           # $s0 = Ptr CPF (preserva argumento)
+    sw $s1, 8($sp)                                                           # $s1 = Ptr Conta (preserva argumento)
+    sw $s2, 12($sp)                                                          # $s2 = Ptr Nome (preserva argumento)
+    sw $s3, 16($sp)                                                          # $s3 = Ptr Base do Novo Cliente
+    sw $s4, 20($sp)                                                          # $s4 = Valor do limite
     
-    # Salva os argumentos nos registradores $s
-    move $s0, $a0           # move o Ptr CPF ($a0) para $s0
-    move $s1, $a1           # move o Ptr Conta ($a1) para $s1
-    move $s2, $a2           # move o Ptr Nome ($a2) para $s2
+    # Salva os argumentos nos registradores preservados
+    move $s0, $a0                                                            # Salva ponteiro do CPF em $s0
+    move $s1, $a1                                                            # Salva ponteiro da Conta em $s1
+    move $s2, $a2                                                            # Salva ponteiro do Nome em $s2
 
     # --- 1. Checar se o Banco está Cheio (R1) ---
-    lw $t0, contador_clientes # carrega o número atual de clientes
-    li $t1, 50                # carrega o limite (50)
-    bge $t0, $t1, erro_banco_cheio # se contador >= 50, pula para erro
+    lw $t0, contador_clientes                                                # Carrega contador atual de clientes
+    li $t1, 50                                                               # $t1 = limite máximo de clientes
+    bge $t0, $t1, erro_banco_cheio                                           # Se contador >= 50, erro de banco cheio
 
     # --- 2. Checar Duplicata de CPF (R1) ---
-    move $a0, $s0           # $a0 = Ptr CPF (argumento para a busca)
-    jal encontrarClientePorCPF # invoca a função de busca por CPF
-    bnez $v0, erro_cpf      # se $v0 != 0 (cliente encontrado), pula para erro_cpf
+    move $a0, $s0                                                            # $a0 = Ptr CPF para verificação
+    jal encontrarClienteCPF                                               # Chama função para buscar CPF existente
+    bnez $v0, erro_cpf                                                       # Se retorno ≠ 0, CPF já existe
     
     # --- 3. Checar Duplicata de Conta (R1) ---
-    # Precisamos verificar se já existe alguma conta com os mesmos 6 dígitos
-    la $t0, buffer_temp     # carrega o endereço do buffer temporário
-    move $a0, $t0           # $a0 = destino da cópia
-    move $a1, $s1           # $a1 = origem (Ptr Conta)
-    jal strcpy              # copia a string da conta para o buffer
-
-    # Busca por clientes com mesma conta (usando strncmp para comparar apenas 6 caracteres)
-    move $a0, $s1           # $a0 = 6 dígitos da conta (Ptr Conta)
-    li $a1, 0               # $a1 = índice inicial (0)
-    la $a2, banco_clientes
-    lw $a3, contador_clientes
-    jal verificarContaExistente # invoca a função de verificação (baseada em strncmp)
-    bnez $v0, erro_conta    # se $v0 != 0 (conta já existe), pula para erro_conta
+    move $a0, $s1                                                            # $a0 = Ptr Conta para verificação
+    jal encontrarCliente                                                     # Chama função para buscar conta existente
+    bnez $v0, erro_conta                                                     # Se retorno ≠ 0, conta já existe
 
     # --- 4. Criar o cliente. ---
     
     # 4a. Calcular o endereço do novo cliente
-    lw $t0, contador_clientes   # $t0 = índice (ex: 0)
-    la $t1, banco_clientes    # $t1 = endereço base do banco
-    li $t2, 6508              # carrega o tamanho de 1 cliente (SIZE_CLIENTE)
-    mul $t0, $t0, $t2         # calcula o deslocamento (offset)
-    add $s3, $t1, $t0         # $s3 = Endereço Base do Novo Cliente
-    
+    lw $t0, contador_clientes                                                # $t0 = índice do novo cliente
+    la $t1, banco_clientes                                                   # $t1 = endereço base do banco
+    li $t2, 6508                                                             # $t2 = tamanho de cada cliente (6508 bytes)
+    mul $t0, $t0, $t2                                                        # $t0 = offset = índice × tamanho_cliente
+    add $s3, $t1, $t0                                                        # $s3 = endereço do novo cliente
+
     # 4b. Salvar Nome (R1)
-    move $a0, $s3             # $a0 = Destino (Base + 0)
-    move $a1, $s2             # $a1 = Origem (Ptr Nome)
-    jal strcpy                # invoca a função strcpy
+    move $a0, $s3                                                            # $a0 = destino (campo nome do cliente)
+    move $a1, $s2                                                            # $a1 = origem (nome fornecido)
+    jal strcpy                                                               # Copia nome para estrutura do cliente
 
     # 4c. Salvar CPF (R1)
-    la $a0, ($s3)             # carrega o endereço base do cliente
-    addi $a0, $a0, 64         # $a0 = Destino (Base + 64, Offset do CPF)
-    move $a1, $s0             # $a1 = Origem (Ptr CPF)
-    jal strcpy                # invoca a função strcpy
+    la $a0, ($s3)                                                            # $a0 = endereço base do cliente
+    addi $a0, $a0, 64                                                        # $a0 = destino (offset 64 = campo CPF)
+    move $a1, $s0                                                            # $a1 = origem (CPF fornecido)
+    jal strcpy                                                               # Copia CPF para estrutura do cliente
 
     # 4d. Calcular DV (R1)
-    move $a0, $s1             # $a0 = Ptr Conta ("765432")
-    jal calcularDV            # invoca a função de cálculo do DV
-    move $t4, $v0             # salva o caractere DV (ex: 'X') em $t4
+    move $a0, $s1                                                            # $a0 = ponteiro para número da conta
+    jal calcularDV                                                           # Calcula dígito verificador
+    move $t4, $v0                                                            # $t4 = dígito verificador calculado
 
     # 4e. Salvar a Conta (Formato XXXXXX-X)
-    la $t5, ($s3)
-    addi $t5, $t5, 76         # $t5 = Ponteiro para o campo da conta (Offset 76)
+    la $t5, ($s3)                                                            # $t5 = endereço base do cliente
+    addi $t5, $t5, 76                                                        # $t5 = destino (offset 76 = campo conta)
     
-    move $a0, $t5             # $a0 = Destino
-    move $a1, $s1             # $a1 = Origem ("765432")
-    jal strcpy                # copia "765432" para o campo
-    
-    # Adiciona "-X\0"
-    addi $t5, $t5, 6          # avança o ponteiro 6 bytes (para o fim de "765432")
-    li $t6, '-'
-    sb $t6, 0($t5)            # salva o caractere '-'
-    sb $t4, 1($t5)            # salva o caractere DV
-    sb $zero, 2($t5)          # salva o terminador nulo ('\0')
+    move $a0, $t5                                                            # $a0 = destino para cópia
+    move $a1, $s1                                                            # $a1 = origem (6 dígitos da conta)
+    jal strcpy                                                               # Copia 6 dígitos para campo conta
+
+    # Adiciona "-X\0" para completar formatação XXXXXX-X
+    addi $t5, $t5, 6                                                         # Avança 6 bytes (pula os dígitos copiados)
+    li $t6, '-'                                                              # $t6 = caractere hífen
+    sb $t6, 0($t5)                                                           # Armazena hífen na posição 7
+    sb $t4, 1($t5)                                                           # Armazena dígito verificador na posição 8
+    sb $zero, 2($t5)                                                         # Armazena null terminator na posição 9
 
     # 4f. Inicializar Campos (R2, R3) - Usando store não alinhado
-    li $s4, 150000            # carrega o Limite Padrão (1500.00) em $s4
+    li $s4, 150000                                                           # $s4 = R$ 1500.00 (limite padrão em centavos)
     
-    # Salva Saldo (Offset 88)
-    addi $a0, $s3, 88         # $a0 = Endereço (Base + 88)
-    li $a1, 0                 # $a1 = Valor (0)
-    jal store_word_unaligned  # invoca a função de salvar 4 bytes (não alinhado)
+    # Salva Saldo (Offset 88) - CORRIGIDO para offsets alinhados
+    addi $a0, $s3, 88                                                        # $a0 = endereço do campo saldo
+    li $a1, 0                                                                # $a1 = valor zero para saldo inicial
+    jal store_word_unaligned                                                 # Armazena saldo inicial
 
-    # Salva Limite (Offset 92)  
-    addi $a0, $s3, 92
-    move $a1, $s4             # $a1 = Valor (150000)
-    jal store_word_unaligned
+    # Salva Limite (Offset 92) - CORRIGIDO para offsets alinhados
+    addi $a0, $s3, 92                                                        # $a0 = endereço do campo limite
+    move $a1, $s4                                                            # $a1 = valor do limite (150000)
+    jal store_word_unaligned                                                 # Armazena limite
 
-    # Salva Dívida (Offset 96)
-    addi $a0, $s3, 96
-    li $a1, 0
-    jal store_word_unaligned
+    # Salva Dívida (Offset 96) - CORRIGIDO para offsets alinhados
+    addi $a0, $s3, 96                                                        # $a0 = endereço do campo dívida
+    li $a1, 0                                                                # $a1 = valor zero para dívida inicial
+    jal store_word_unaligned                                                 # Armazena dívida inicial
 
-    # Salva Idx_Debito (Offset 100)
-    addi $a0, $s3, 100
-    li $a1, 0
-    jal store_word_unaligned
+    # Salva Idx_Debito (Offset 100) - CORRIGIDO para offsets alinhados
+    addi $a0, $s3, 100                                                       # $a0 = endereço do campo índice débito
+    li $a1, 0                                                                # $a1 = valor zero para índice inicial
+    jal store_word_unaligned                                                 # Armazena índice débito
 
-    # Salva Idx_Credito (Offset 104)
-    addi $a0, $s3, 104
-    li $a1, 0
-    jal store_word_unaligned
+    # Salva Idx_Credito (Offset 104) - CORRIGIDO para offsets alinhados
+    addi $a0, $s3, 104                                                       # $a0 = endereço do campo índice crédito
+    li $a1, 0                                                                # $a1 = valor zero para índice inicial
+    jal store_word_unaligned                                                 # Armazena índice crédito
 
     # 4g. Incrementar contador de clientes
-    lw $t0, contador_clientes
-    addi $t0, $t0, 1
-    sw $t0, contador_clientes # salva o novo contador (contador + 1)
+    lw $t0, contador_clientes                                                # Carrega contador atual
+    addi $t0, $t0, 1                                                         # Incrementa contador
+    sw $t0, contador_clientes                                                # Armazena novo valor do contador
     
     # --- 4h. Imprimir Sucesso (R1) ---
-    la $a0, msgSucesso
-    jal print_string_mmio     # imprime a mensagem de sucesso
+    la $a0, msgSucesso                                                       # Carrega mensagem de sucesso
+    jal print_string_mmio                                                    # Imprime mensagem inicial
     # Imprime a conta (XXXXXX-X)
-    la $a0, ($s3)
-    addi $a0, $a0, 76         # $a0 = Ptr da Conta (Offset 76)
-    jal print_string_mmio     # imprime a string da conta
-    j cadastro_fim
+    la $a0, ($s3)                                                            # Carrega endereço base do cliente
+    addi $a0, $a0, 76                                                        # $a0 = endereço do campo conta
+    jal print_string_mmio                                                    # Imprime número da conta formatado
+    j cadastro_fim                                                           # Salta para final do cadastro
 
 erro_banco_cheio:
-    la $a0, msgErroBancoCheio # carrega a msg de erro (banco cheio)
-    jal print_string_mmio     # imprime a mensagem
-    j cadastro_fim
+    la $a0, msgErroBancoCheio                                                # Carrega mensagem de banco cheio
+    jal print_string_mmio                                                    # Imprime mensagem de erro
+    j cadastro_fim                                                           # Salta para final do cadastro
 
 erro_cpf:
-    la $a0, msgErroCPF        # carrega a msg de erro (CPF duplicado)
-    jal print_string_mmio     # imprime a mensagem
-    j cadastro_fim
+    la $a0, msgErroCPF                                                       # Carrega mensagem de CPF duplicado
+    jal print_string_mmio                                                    # Imprime mensagem de erro
+    j cadastro_fim                                                           # Salta para final do cadastro
 
 erro_conta:
-    la $a0, msgErroConta      # carrega a msg de erro (Conta duplicada)
-    jal print_string_mmio     # imprime a mensagem
-    j cadastro_fim
+    la $a0, msgErroConta                                                     # Carrega mensagem de conta duplicada
+    jal print_string_mmio                                                    # Imprime mensagem de erro
+    j cadastro_fim                                                           # Salta para final do cadastro
 
 cadastro_fim:
     # --- Epílogo ---
-    lw $ra, 0($sp)            # restaura o endereço de retorno
-    lw $s0, 4($sp)            # restaura $s0
-    lw $s1, 8($sp)            # restaura $s1
-    lw $s2, 12($sp)           # restaura $s2
-    lw $s3, 16($sp)           # restaura $s3
-    lw $s4, 20($sp)           # restaura $s4
-    addi $sp, $sp, 24         # libera 24 bytes da pilha
-    jr $ra                    # retorna para o main_loop
+    lw $ra, 0($sp)                                                           # Restaura endereço de retorno
+    lw $s0, 4($sp)                                                           # Restaura $s0 (Ptr CPF)
+    lw $s1, 8($sp)                                                           # Restaura $s1 (Ptr Conta)
+    lw $s2, 12($sp)                                                          # Restaura $s2 (Ptr Nome)
+    lw $s3, 16($sp)                                                          # Restaura $s3 (Ptr Base Cliente)
+    lw $s4, 20($sp)                                                          # Restaura $s4 (Valor Limite)
+    addi $sp, $sp, 24                                                        # Libera espaço na pilha
+    jr $ra                                                                   # Retorna para chamador
 
 # ----------------------------------------------------------------------
 # Função: calcularDV (Cálculo do Dígito Verificador - R1)
 # ----------------------------------------------------------------------
 .globl calcularDV
 calcularDV:
-    move $t0, $a0           # $t0 = ponteiro para a string da conta
-    li $s0, 0               # $s0 = acumulador
+    move $t0, $a0                                                            # $t0 = ponteiro para número da conta
+    li $s0, 0                                                                # $s0 = acumulador para cálculo
     
-    lb $t1, 5($t0)          # carrega d0 (char)
-    subi $t2, $t1, 48       # $t2 = d0 (int)
-    li $t3, 2
-    mul $t2, $t2, $t3       # $t2 = d0 * 2
-    add $s0, $s0, $t2       # acumula
+    # Calcula: (d5×2) + (d4×3) + (d3×4) + (d2×5) + (d1×6) + (d0×7)
+    lb $t1, 5($t0)                                                           # Carrega dígito 5 (menos significativo)
+    subi $t2, $t1, 48                                                        # Converte ASCII para inteiro
+    li $t3, 2                                                                # $t3 = peso 2
+    mul $t2, $t2, $t3                                                        # d5 × 2
+    add $s0, $s0, $t2                                                        # Adiciona ao acumulador
     
-    lb $t1, 4($t0)          # carrega d1
-    subi $t2, $t1, 48
-    li $t3, 3
-    mul $t2, $t2, $t3
-    add $s0, $s0, $t2
+    lb $t1, 4($t0)                                                           # Carrega dígito 4
+    subi $t2, $t1, 48                                                        # Converte ASCII para inteiro
+    li $t3, 3                                                                # $t3 = peso 3
+    mul $t2, $t2, $t3                                                        # d4 × 3
+    add $s0, $s0, $t2                                                        # Adiciona ao acumulador
     
-    lb $t1, 3($t0)          # carrega d2
-    subi $t2, $t1, 48
-    li $t3, 4
-    mul $t2, $t2, $t3
-    add $s0, $s0, $t2
+    lb $t1, 3($t0)                                                           # Carrega dígito 3
+    subi $t2, $t1, 48                                                        # Converte ASCII para inteiro
+    li $t3, 4                                                                # $t3 = peso 4
+    mul $t2, $t2, $t3                                                        # d3 × 4
+    add $s0, $s0, $t2                                                        # Adiciona ao acumulador
     
-    lb $t1, 2($t0)          # carrega d3
-    subi $t2, $t1, 48
-    li $t3, 5
-    mul $t2, $t2, $t3
-    add $s0, $s0, $t2
+    lb $t1, 2($t0)                                                           # Carrega dígito 2
+    subi $t2, $t1, 48                                                        # Converte ASCII para inteiro
+    li $t3, 5                                                                # $t3 = peso 5
+    mul $t2, $t2, $t3                                                        # d2 × 5
+    add $s0, $s0, $t2                                                        # Adiciona ao acumulador
     
-    lb $t1, 1($t0)          # carrega d4
-    subi $t2, $t1, 48
-    li $t3, 6
-    mul $t2, $t2, $t3
-    add $s0, $s0, $t2
+    lb $t1, 1($t0)                                                           # Carrega dígito 1
+    subi $t2, $t1, 48                                                        # Converte ASCII para inteiro
+    li $t3, 6                                                                # $t3 = peso 6
+    mul $t2, $t2, $t3                                                        # d1 × 6
+    add $s0, $s0, $t2                                                        # Adiciona ao acumulador
     
-    lb $t1, 0($t0)          # carrega d5
-    subi $t2, $t1, 48
-    li $t3, 7
-    mul $t2, $t2, $t3
-    add $s0, $s0, $t2
+    lb $t1, 0($t0)                                                           # Carrega dígito 0 (mais significativo)
+    subi $t2, $t1, 48                                                        # Converte ASCII para inteiro
+    li $t3, 7                                                                # $t3 = peso 7
+    mul $t2, $t2, $t3                                                        # d0 × 7
+    add $s0, $s0, $t2                                                        # Adiciona ao acumulador
     
-    # Calcula o resto
-    li $t2, 11
-    div $s0, $t2
-    mfhi $s0                # $s0 = resto
+    li $t2, 11                                                               # $t2 = divisor 11
+    div $s0, $t2                                                             # Divide acumulador por 11
+    mfhi $s0                                                                 # $s0 = resto da divisão
     
-    # Checa o caso 10
-    li $t2, 10
-    bne $s0, $t2, resto_nao_dez # se resto != 10, pula
+    li $t2, 10                                                               # $t2 = 10 para comparação
+    bne $s0, $t2, resto_nao_dez                                              # Se resto ≠ 10, salta
     
-    li $v0, 'X'             # $v0 = 'X' (se resto == 10)
-    jr $ra
+    li $v0, 'X'                                                              # Se resto = 10, DV = 'X'
+    jr $ra                                                                   # Retorna
 
 resto_nao_dez:
-    addi $v0, $s0, 48       # $v0 = char(resto + 48)
-    jr $ra
-
-# ----------------------------------------------------------------------
-# Função: verificarContaExistente
-# Verifica se já existe uma conta com os mesmos 6 primeiros dígitos
-# ----------------------------------------------------------------------
-verificarContaExistente:
-    # $a0 = Ptr Conta (Input), $a1 = i (índice), $a2 = banco_clientes, $a3 = contador
-    move $t0, $a1           # $t0 = i (índice)
-    move $t1, $a3           # $t1 = limite (contador_clientes)
-    move $t2, $a2           # $t2 = banco_clientes
-    move $t3, $a0           # $t3 = Ptr Conta (Input)
-    
-verificar_loop:
-    bge $t0, $t1, verificar_nao_encontrado # se i >= limite, fim
-    
-    # Calcula endereço do cliente
-    li $t4, 6508            # $t4 = SIZE_CLIENTE
-    mul $t5, $t0, $t4       # $t5 = offset
-    add $t5, $t2, $t5       # $t5 = Endereço Cliente[i]
-    
-    # Compara os 6 primeiros dígitos da conta
-    addi $a0, $t5, 76       # $a0 = Ptr Conta Armazenada (Offset 76)
-    move $a1, $t3           # $a1 = Ptr Conta (Input)
-    li $a2, 6               # $a2 = 6 (comprimento)
-    jal strncmp
-    
-    beqz $v0, verificar_encontrado # se 0 (iguais), pula
-    
-    addi $t0, $t0, 1        # i++
-    j verificar_loop
-
-verificar_encontrado:
-    li $v0, 1               # retorna 1 (encontrado)
-    jr $ra
-
-verificar_nao_encontrado:
-    li $v0, 0               # retorna 0 (não encontrado)
-    jr $ra
+    addi $v0, $s0, 48                                                        # Converte resto para ASCII (0-9)
+    jr $ra                                                                   # Retorna
 
 # ----------------------------------------------------------------------
 # Função: store_word_unaligned
@@ -271,11 +220,11 @@ verificar_nao_encontrado:
 # Argumentos: $a0 = endereço, $a1 = valor
 # ----------------------------------------------------------------------
 store_word_unaligned:
-    sb $a1, 0($a0)          # salva byte 0 (menos significativo)
-    srl $a1, $a1, 8         # shift 8 bits para a direita
-    sb $a1, 1($a0)          # salva byte 1
-    srl $a1, $a1, 8
-    sb $a1, 2($a0)          # salva byte 2
-    srl $a1, $a1, 8
-    sb $a1, 3($a0)          # salva byte 3 (mais significativo)
-    jr $ra
+    sb $a1, 0($a0)                                                           # Salva byte 0 (menos significativo)
+    srl $a1, $a1, 8                                                          # Shift 8 bits para a direita
+    sb $a1, 1($a0)                                                           # Salva byte 1
+    srl $a1, $a1, 8                                                          # Shift 8 bits para a direita
+    sb $a1, 2($a0)                                                           # Salva byte 2
+    srl $a1, $a1, 8                                                          # Shift 8 bits para a direita
+    sb $a1, 3($a0)                                                           # Salva byte 3 (mais significativo)
+    jr $ra                                                                   # Retorna
