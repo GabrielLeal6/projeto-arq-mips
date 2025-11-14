@@ -5,6 +5,7 @@
 .data
 	banner: .asciiz "Banco Tempero-shell>> " # Banner do banco estilo terminal (Requisito 12)
 	
+	
 	.globl input_buffer
 	input_buffer: .space 128 # reserva 128 bytes para os inputs
 

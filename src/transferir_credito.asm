@@ -3,9 +3,9 @@
 # Arquivo referente ao comando transferir no crédito
 
 .data
-	msgSucessoCredito .asciiz "Pagamento realizado com sucesso.\n"
-	msgErroCliente	  .asciiz "Falha: Cliente não existe||não encontrado.n"
-	msgErroLimite	  .asciiz "Falha: Limite insuficiente.\n"
+	msgSucessoCredito: .asciiz "Pagamento realizado com sucesso.\n"
+	msgErroCliente:	  .asciiz "Falha: Cliente não existe||não encontrado.n"
+	msgErroLimite:	  .asciiz "Falha: Limite insuficiente.\n"
 
 .text
 # -----------------------------------------------------------------
@@ -18,7 +18,7 @@
 .globl transferir_credito
 transferir_credito:
 	# Registradores
-	addi $sp, $sp, $-24
+	addi $sp, $sp, -24
 	sw $ra, 0($sp)	# $ra = endereço de retorno
 	sw $s0, 4($sp)	# $s0 = endereço da string da conta do cliente 1
 	sw $s1, 8($sp)	# $s1 = endereço da string da conta do cliente 2

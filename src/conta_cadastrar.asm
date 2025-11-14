@@ -8,7 +8,7 @@
     msgErroCPF:   .asciiz "Ja existe conta neste CPF.\n"                     # Mensagem de erro para CPF duplicado
     msgErroConta: .asciiz "Numero da conta ja em uso.\n"                     # Mensagem de erro para conta duplicada
     msgErroBancoCheio: .asciiz "Erro: Banco de dados cheio.\n"               # Mensagem de erro para banco cheio
-    
+    newline: .asciiz "\n"
     charHifen:    .asciiz "-"                                                # Caractere hífen para formatação
 
 .text
@@ -127,6 +127,9 @@ funcao_conta_cadastrar:
     la $a0, ($s3)                                                            # Carrega endereço base do cliente
     addi $a0, $a0, 76                                                        # $a0 = endereço do campo conta
     jal print_string_mmio                                                    # Imprime número da conta formatado
+    
+    la $a0, newline                                                          # carrega a quebra de linha
+    jal print_string_mmio						     # Quebra de linha
     j cadastro_fim                                                           # Salta para final do cadastro
 
 erro_banco_cheio:
