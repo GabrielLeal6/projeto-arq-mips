@@ -7,6 +7,7 @@
 	msgErro:	 	 .asciiz "Erro: Saldo insuficiente.\n"
 	
 .text
+# -----------------------------------------------------------------
 # Função: sacar
 # Subtrai um valor da conta de um cliente usando o número da conta.
 # Argumentos: $a0 = endereço da string com o número da conta

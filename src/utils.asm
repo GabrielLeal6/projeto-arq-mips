@@ -3,8 +3,8 @@
 # Arquivo referente a funções gerais que serão usadas no projeto
 
 .data
-	msgEncontrado:	  .asciiz "Cliente encontrado"
-	msgNaoEncontrado: .asciiz "Não foi encontrado um cliente com este número de conta//CPF."
+	msgEncontrado:	  .asciiz "Cliente encontrado.\n"
+	msgNaoEncontrado: .asciiz "Não foi encontrado um cliente com este número de conta//CPF.\n"
 
 .text
 # -----------------------------------------------------------------
@@ -135,8 +135,6 @@ encontrarCPFTerminar:
 # -----------------------------------------------------------------
 .globl stringParaInteiro
 stringParaInteiro:
-    # --- Prólogo ---
-    addi $sp, $sp, -12
 	li $v0, 0	# $v0 = resultado = 0
    	li $t1, 10      # $t1 = 10 (para multiplicação)
 
